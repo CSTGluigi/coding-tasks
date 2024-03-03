@@ -5,9 +5,10 @@
 #include <string>
 #include <vector>
 
-#include "relation.h"
+
 
 struct SelectInfo {
+    using RelationId = unsigned;
     /// Relation id
     RelationId rel_id;
     /// Binding for the relation
@@ -94,6 +95,7 @@ struct PredicateInfo {
 
 class QueryInfo {
 private:
+    using RelationId = unsigned;
     /// The relation ids
     std::vector<RelationId> relation_ids_;
     /// The predicates

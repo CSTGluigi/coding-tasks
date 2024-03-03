@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <map>
+#include "parser.h"
 
 using RelationId = unsigned;
 
@@ -14,7 +16,6 @@ private:
     uint64_t size_;
     /// The join column containing the keys
     std::vector<uint64_t *> columns_;
-
 public:
     /// Constructor without mmap
     Relation(uint64_t size, std::vector<uint64_t *> &&columns)
@@ -44,6 +45,29 @@ public:
     const std::vector<uint64_t *> &columns() const {
         return columns_;
     }
+
+    std::vector<std::uint64_t> applyFilter(std::vector<FilterInfo> &filters) const{
+        std::vector<std::uint64_t> res;
+        res.reserve(50);
+        for(int i=0;i<size_;i++){
+            for(auto &f:filters){
+                auto compare_col = columns_[f.filter_column.col_id];
+                auto constant = f.constant;
+                switch (f.comparison) {
+                    case FilterInfo::Comparison::Equal:
+                        if(compare_col[i] == constant)res.push_back(i);
+                        break;
+                    case FilterInfo::Comparison::Greater:
+                        if(compare_col[i] > constant)res.push_back(i);
+                        break;
+                    case FilterInfo::Comparison::Less:
+                        if(compare_col[i] < constant)res.push_back(i);
+                };
+            }
+        }
+        return res;
+    }
+
 
 private:
     /// Loads data from a file
