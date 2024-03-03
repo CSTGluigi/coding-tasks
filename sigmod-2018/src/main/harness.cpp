@@ -14,7 +14,7 @@
 const unsigned long MAX_FAILED_QUERIES = 100;
 
 // Time to wait between initializing and issuing queries
-const unsigned long WAITING_TIME_SECS = 60;
+const unsigned long WAITING_TIME_SECS = 10;
 
 static void usage() {
     std::cerr
@@ -125,8 +125,10 @@ int main(int argc, char *argv[]) {
     pid_t pid = fork();
     if (pid == -1) {
         perror("fork");
+        std::cout<<"???3?";
         exit(EXIT_FAILURE);
     } else if (pid == 0) {
+        std::cout<<"????";
         dup2(stdin_pipe[0], STDIN_FILENO);
         close(stdin_pipe[0]);
         close(stdin_pipe[1]);

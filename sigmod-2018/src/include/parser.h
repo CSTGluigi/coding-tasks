@@ -5,9 +5,10 @@
 #include <string>
 #include <vector>
 
-#include "relation.h"
+
 
 struct SelectInfo {
+    using RelationId = unsigned;
     /// Relation id
     RelationId rel_id;
     /// Binding for the relation
@@ -72,6 +73,8 @@ static const std::vector<FilterInfo::Comparison> comparisonTypes {
     FilterInfo::Comparison::Equal};
 
 struct PredicateInfo {
+    static int id;
+    int cur_id;
     /// Left
     SelectInfo left;
     /// Right
@@ -94,6 +97,7 @@ struct PredicateInfo {
 
 class QueryInfo {
 private:
+    using RelationId = unsigned;
     /// The relation ids
     std::vector<RelationId> relation_ids_;
     /// The predicates
@@ -109,6 +113,8 @@ public:
     /// The constructor that parses a query
     explicit QueryInfo(std::string raw_query);
 
+    template<class Func>
+    void sort(Func&& f){std::sort(predicates_.begin(),predicates_.end(),f);}
     /// Parse relation ids <r1> <r2> ...
     void parseRelationIds(std::string &raw_relations);
     /// Parse predicates r1.a=r2.b&r1.b=r3.c...

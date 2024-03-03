@@ -80,7 +80,6 @@ void FilterScan::run() {
             copy2Result(i);
     }
 }
-
 // Require a column and add it to results
 bool Join::require(SelectInfo info) {
     if (requested_columns_.count(info) == 0) {

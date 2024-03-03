@@ -74,6 +74,19 @@ std::string Joiner::join(QueryInfo &query) {
     // We always start with the first join predicate and append the other joins
     // to it (--> left-deep join trees). You might want to choose a smarter
     // join ordering ...
+//    for(auto &f:query.predicates()){
+//        std::cerr<<f.cur_id<<" ";
+//    }
+//    std::cerr<<"next\n";
+//    query.shuffle();
+//    for(auto &f:query.predicates()){
+//        std::cerr<<f.cur_id<<" ";
+//    }
+//    std::cerr<<"end1\n"<<std::endl;
+    query.sort([&](PredicateInfo& left,PredicateInfo& right){
+       return std::min(relations_[left.left.rel_id].size(),relations_[left.right.rel_id].size()) <
+               std::min(relations_[right.left.rel_id].size(),relations_[right.right.rel_id].size());
+    });
     const auto &firstJoin = query.predicates()[0];
     std::unique_ptr<Operator> left, right;
     left = addScan(used_relations, firstJoin.left, query);
@@ -119,6 +132,7 @@ std::string Joiner::join(QueryInfo &query) {
 
     std::stringstream out;
     auto &results = checksum.check_sums();
+
     for (unsigned i = 0; i < results.size(); ++i) {
         out << (checksum.result_size() == 0 ? "NULL" : std::to_string(results[i]));
         if (i < results.size() - 1)
