@@ -71,13 +71,8 @@ bool FilterScan::applyFilter(uint64_t i, FilterInfo &f) {
 
 // Run
 void FilterScan::run() {
-    for (uint64_t i = 0; i < relation_.size(); ++i) {
-        bool pass = true;
-        for (auto &f : filters_) {
-            pass &= applyFilter(i, f);
-        }
-        if (pass)
-            copy2Result(i);
+    for(auto& i:relation_.applyFilter(filters_)){
+        copy2Result(i);
     }
 }
 // Require a column and add it to results
