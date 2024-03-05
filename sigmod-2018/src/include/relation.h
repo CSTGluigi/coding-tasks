@@ -13,14 +13,23 @@ private:
     bool owns_memory_;
     /// The number of tuples
     uint64_t size_;
+
+#ifdef tmp
+    struct par{
+        std::uint64_t val;
+        std::uint64_t num;
+        bool operator<(const par& r)const {
+            return val<r.val;
+        }
+    };
+#endif
+#define tmp
     /// The join column containing the keys
     std::vector<uint64_t *> columns_;
 
-
-    std::vector<std::uint64_t> avg_repeat;
 public:
-    std::vector<std::map<std::uint64_t,std::uint64_t>>statics;
-
+    std::vector<std::unordered_multimap<uint64_t,uint64_t>> index_;// val to tuple number
+    std::vector<std::unordered_map<uint64_t,bool>> keys;// val to tuple number
     /// Constructor without mmap
     Relation(uint64_t size, std::vector<uint64_t *> &&columns)
         : owns_memory_(true), size_(size), columns_(columns) {}

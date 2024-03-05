@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="远程主机 (4a462c97-946a-4791-9773-021e924261cf)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/tmp.ufgRkokAq5" local="$PROJECT_DIR$/sigmod-2018" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>

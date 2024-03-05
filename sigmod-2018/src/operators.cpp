@@ -5,7 +5,7 @@
 // Get materialized results
 std::vector<uint64_t *> Operator::getResults() {
     std::vector<uint64_t *> result_vector;
-    for (auto &c : tmp_results_) {
+    for (auto &c: tmp_results_) {
         result_vector.push_back(c.data());
     }
     return result_vector;
@@ -40,9 +40,11 @@ bool FilterScan::require(SelectInfo info) {
     if (select_to_result_col_id_.find(info) == select_to_result_col_id_.end()) {
         // Add to results
         input_data_.push_back(relation_.columns()[info.col_id]);
+//        input_.emplace_back(info);
+
         tmp_results_.emplace_back();
         unsigned colId = tmp_results_.size() - 1;
-        select_to_result_col_id_[info] = colId;
+        select_to_result_col_id_[info] = colId;//结果列的数量
     }
     return true;
 }
@@ -59,22 +61,70 @@ bool FilterScan::applyFilter(uint64_t i, FilterInfo &f) {
     auto compare_col = relation_.columns()[f.filter_column.col_id];
     auto constant = f.constant;
     switch (f.comparison) {
-    case FilterInfo::Comparison::Equal:
-        return compare_col[i] == constant;
-    case FilterInfo::Comparison::Greater:
-        return compare_col[i] > constant;
-    case FilterInfo::Comparison::Less:
-        return compare_col[i] < constant;
+        case FilterInfo::Comparison::Equal:
+            return compare_col[i] == constant;
+        case FilterInfo::Comparison::Greater:
+            return compare_col[i] > constant;
+        case FilterInfo::Comparison::Less:
+            return compare_col[i] < constant;
     };
     return false;
 }
 
+//void FilterScan::run() {
+//    for (uint64_t i = 0; i < relation_.size(); ++i) {
+//        bool pass = true;
+//        for (auto &f : filters_) {
+//            pass &= applyFilter(i, f);
+//        }
+//        if (pass)
+//            copy2Result(i);
+//    }
+//}
 // Run
 void FilterScan::run() {
-    for(auto& i:relation_.applyFilter(filters_)){
-        copy2Result(i);
+    for (uint64_t i = 0; i < filters_.size(); ++i) {
+        auto &f = filters_[i];
+        auto id = f.filter_column.col_id;
+//        auto it=relation_.index_[id].lower_bound(f.constant);
+//        auto e=relation_.index_[id].end();
+//        auto range = relation_.index_[id].equal_range(f.constant);
+        decltype(relation_.index_[id].equal_range(f.constant)) range;
+
+        switch (f.comparison) {
+            case FilterInfo::Comparison::Equal:
+                range = relation_.index_[id].equal_range(f.constant);
+                for (auto iter = range.first; iter != range.second; ++iter) {
+                    copy2Result(iter->second);
+                }
+                break;
+            case FilterInfo::Comparison::Greater:
+                for (auto &[key, _]: relation_.keys[id]) {
+                    if (key > f.constant) {
+                        range = relation_.index_[id].equal_range(key);
+                        for (auto iter = range.first; iter != range.second; ++iter) {
+                            copy2Result(iter->second);
+                        }
+                    }
+                }
+
+                break;
+            case FilterInfo::Comparison::Less:
+                for (auto &[key, _]: relation_.keys[id]) {
+                    if (key < f.constant) {
+                        range = relation_.index_[id].equal_range(key);
+                        for (auto iter = range.first; iter != range.second; ++iter) {
+                            copy2Result(iter->second);
+                        }
+                    }
+                }
+                break;
+        }
+
+
     }
 }
+
 // Require a column and add it to results
 bool Join::require(SelectInfo info) {
     if (requested_columns_.count(info) == 0) {
@@ -126,11 +176,11 @@ void Join::run() {
 
     // Resolve the input_ columns_
     unsigned res_col_id = 0;
-    for (auto &info : requested_columns_left_) {
+    for (auto &info: requested_columns_left_) {
         copy_left_data_.push_back(left_input_data[left_->resolve(info)]);
         select_to_result_col_id_[info] = res_col_id++;
     }
-    for (auto &info : requested_columns_right_) {
+    for (auto &info: requested_columns_right_) {
         copy_right_data_.push_back(right_input_data[right_->resolve(info)]);
         select_to_result_col_id_[info] = res_col_id++;
     }
@@ -181,7 +231,7 @@ void SelfJoin::run() {
     input_->run();
     input_data_ = input_->getResults();
 
-    for (auto &iu : required_IUs_) {
+    for (auto &iu: required_IUs_) {
         auto id = input_->resolve(iu);
         copy_data_.emplace_back(input_data_[id]);
         select_to_result_col_id_.emplace(iu, copy_data_.size() - 1);
@@ -200,20 +250,20 @@ void SelfJoin::run() {
 
 // Run
 void Checksum::run() {
-    for (auto &sInfo : col_info_) {
+    for (auto &sInfo: col_info_) {
         input_->require(sInfo);
     }
     input_->run();
     auto results = input_->getResults();
 
-    for (auto &sInfo : col_info_) {
+    for (auto &sInfo: col_info_) {
         auto col_id = input_->resolve(sInfo);
         auto result_col = results[col_id];
         uint64_t sum = 0;
         result_size_ = input_->result_size();
         for (auto iter = result_col, limit = iter + input_->result_size();
-                iter != limit;
-                ++iter)
+             iter != limit;
+             ++iter)
             sum += *iter;
         check_sums_.push_back(sum);
     }

@@ -84,23 +84,22 @@ void Relation::loadRelation(const char *file_name) {
     addr += sizeof(size_);
     auto numColumns = *reinterpret_cast<size_t *>(addr);
     addr += sizeof(size_t);
-    statics.reserve(numColumns);
-    avg_repeat.reserve(numColumns);
-    for (unsigned i = 0; i < numColumns; ++i) {
+    index_.reserve(numColumns);
+    keys.reserve(numColumns);
+//    std::cerr<<" this table size="<<size_<<"\n";
+    for (uint64_t i = 0; i < numColumns; ++i) {
         this->columns_.push_back(reinterpret_cast<uint64_t *>(addr));
-//        for(std::uint64_t j=0;j<size_;j++){
-//            statics[i][columns_[i][j]]+=1;
-//        }
+        keys.emplace_back();
+        index_.emplace_back();
+//        std::cerr<<"this is "<<i<<std::endl;
+        for(uint64_t j=0;j<size_;j++){
+//            std::cerr<<"this j="<<j<<"val="<<columns_[i][j]<<std::endl;
+            index_[i].emplace(columns_[i][j],j);
+            keys[i][columns_[i][j]]=true;
+        }
+
         addr += size_ * sizeof(uint64_t);
     }
-//    for(auto& mp:statics){
-//        std::uint64_t avg=0;
-//        for(auto&[key,nums]:mp){
-//            avg+=nums;
-//        }
-//        avg/=mp.size();
-//        avg_repeat.push_back(avg);
-//    }
 }
 
 // Constructor that loads relation_ from disk

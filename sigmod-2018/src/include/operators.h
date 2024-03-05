@@ -22,6 +22,13 @@ struct hash<SelectInfo> {
 };
 };
 
+#ifdef mid
+struct MidRes{//仅存储中间结果 想想办法搞掉tmp result
+    std::uint64_t
+};
+#endif
+#define mid
+
 /// Operators materialize their entire result
 class Operator {
 protected:
@@ -79,6 +86,7 @@ private:
     /// The filter info
     std::vector<FilterInfo> filters_;
     /// The input data
+    std::vector<SelectInfo> input_;
     std::vector<uint64_t *> input_data_;
 
 private:
@@ -110,6 +118,7 @@ public:
         return Operator::getResults();
     }
 };
+
 
 class Join : public Operator {
 private:
